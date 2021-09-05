@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.random import randint
+import warnings
 
 
 class Station():
@@ -10,11 +11,13 @@ class Station():
         self.lastBus = 0
         self.occupied = False
     def busStop(self, currentTime):
+        self.occupied = True
         timefromlast = currentTime - self.lastBus
         passengers = np.random.poisson(timefromlast*self.rate/60)
         return passengers
     def busLeave(self, currentTime):
         self.lastBus = currentTime
+        self.occupied = False
     def getLocation(self):
         return [self.location, 0]
 
@@ -28,7 +31,11 @@ class Bus():
         self.occupancy = 0
         self.wait = 0
         self.currentStation = None
-        self.nextStop = self.route.getStations()[0]
+        if len(self.route.getStations()) == 0:
+            warnings.warn('Warning: Created a bus without any stops!')
+            self.nextStop = None
+        else:
+            self.nextStop = self.route.getStations()[0]
         self.nextStopIndex = 0
     def makestep(self, currentTime):
         if self.wait > 1:
@@ -43,7 +50,10 @@ class Bus():
                 passengers = self.currentStation.busStop(currentTime)
                 self.wait = self.baseStopTime + int(passengers*self.boardingRate)
                 self.occupancy += passengers
-                self.nextStop = self.route.getStations()[self.nextStopIndex + 1]
+                try:
+                    self.nextStop = self.route.getStations()[self.nextStopIndex + 1]
+                except:
+                    self.nextStop = None
                 self.nextStopIndex += 1
     def getLocation(self):
         return [self.location, 0]
