@@ -4,6 +4,14 @@ import warnings
 
 
 class Station():
+    """
+        A class for bus stations
+        
+        Station objets do not update each time step, rather give the bus
+        object that gets to its location the number of the passengers that
+        are waiting to board the bus.
+        
+    """
     def __init__(self, location, rate):
         self.location = location
         self.rate = rate
@@ -42,7 +50,10 @@ class Bus():
             self.wait -= 1
         elif self.wait == 1:
             self.currentStation.busLeave(currentTime)
+            self.wait = 0
             self.currentStation = None
+            if not self.nextStop:
+                self.route.remove_bus(self)
         else:
             self.location += 1
             if self.location == self.nextStop.location:
@@ -74,7 +85,11 @@ class Route():
         for bus in self.buses:
             bus.makestep(currentTime)
         self.draw()
-    def draw():
+    def getBuses(self):
+        return [bus.getLocation for bus in self.buses]
+    def remove_bus(self, bus):
+        self.buses.remove(bus)
+    def draw(self):
         pass
     def runSim(self, duration, **kwargs):
         """runs a simulation of length {duration} seconds"""
